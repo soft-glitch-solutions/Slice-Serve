@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
+import { Button } from './ui/button';
 
 interface GameProps {
   onGameOver: (score: number) => void;
@@ -17,22 +18,37 @@ const Game = ({ onGameOver }: GameProps) => {
   const [rotation, setRotation] = useState('clockwise');
   const [slices, setSlices] = useState<number[]>([]);
   const [score, setScore] = useState(0);
-  const [currentFood] = useState(() => FOODS[Math.floor(Math.random() * FOODS.length)]);
+  const [timeLeft, setTimeLeft] = useState(30);
+  const [currentFood, setCurrentFood] = useState(() => FOODS[Math.floor(Math.random() * FOODS.length)]);
   const [requiredSlices] = useState(() => 
     Math.floor(Math.random() * (currentFood.maxSlices - currentFood.minSlices + 1)) + currentFood.minSlices
   );
+  const [peopleToFeed] = useState(() => Math.floor(Math.random() * 5) + 2);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    const rotationInterval = setInterval(() => {
       setRotation(prev => prev === 'clockwise' ? 'counterclockwise' : 'clockwise');
     }, 4000);
 
-    return () => clearInterval(interval);
+    return () => clearInterval(rotationInterval);
   }, []);
 
+  useEffect(() => {
+    if (timeLeft <= 0) {
+      onGameOver(score);
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setTimeLeft(prev => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [timeLeft, onGameOver, score]);
+
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || timeLeft <= 0) return;
 
     const rect = containerRef.current.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
@@ -52,25 +68,34 @@ const Game = ({ onGameOver }: GameProps) => {
     }
 
     setSlices(prev => [...prev, degrees]);
-    setScore(prev => prev + 100);
+  };
 
-    if (slices.length + 1 === requiredSlices) {
-      toast.success("Level Complete!");
-      onGameOver(score + 100);
+  const handleSubmit = () => {
+    if (slices.length === requiredSlices) {
+      toast.success("Perfect slicing! Next level!");
+      setScore(prev => prev + 100);
+      // Reset for next level
+      setSlices([]);
+      setTimeLeft(30);
+      setCurrentFood(FOODS[Math.floor(Math.random() * FOODS.length)]);
+    } else {
+      toast.error("Wrong number of slices!");
+      onGameOver(score);
     }
   };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-orange-50 to-orange-100">
-      <div className="mb-8 text-center">
+      <div className="mb-8 text-center space-y-4">
         <h2 className="text-2xl font-bold text-orange-800">Score: {score}</h2>
-        <p className="text-orange-600">People need food! Make equal portions!</p>
+        <p className="text-orange-600">Feed {peopleToFeed} people!</p>
         <p className="text-sm text-orange-500">Current slices: {slices.length}</p>
+        <p className="text-lg font-semibold text-orange-700">Time left: {timeLeft}s</p>
       </div>
       
       <div 
         ref={containerRef}
-        className="food-container"
+        className="food-container relative mb-8"
         onClick={handleClick}
       >
         <div 
@@ -92,6 +117,13 @@ const Game = ({ onGameOver }: GameProps) => {
           />
         ))}
       </div>
+
+      <Button 
+        onClick={handleSubmit}
+        className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl text-lg font-semibold"
+      >
+        Submit Slices
+      </Button>
       
       <p className="mt-8 text-lg text-orange-700 font-medium">
         Slice the {currentFood.name} carefully!
