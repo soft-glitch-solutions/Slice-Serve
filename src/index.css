@@ -53,14 +53,10 @@
 .slice-line {
   position: absolute;
   background: rgba(255, 255, 255, 0.8);
-  height: 2px;
+  height: 4px; /* Made thicker */
   transform-origin: center;
-  animation: fadeOut 0.5s forwards;
-}
-
-@keyframes fadeOut {
-  from { opacity: 1; }
-  to { opacity: 0; }
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.8); /* Added glow effect */
+  animation: none; /* Removed fade out animation */
 }
 
 .rotate-clockwise {
