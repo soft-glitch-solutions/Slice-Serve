@@ -6,9 +6,11 @@ interface GameProps {
 }
 
 const FOODS = [
-  { name: 'pizza', color: '#FF6B6B' },
-  { name: 'cake', color: '#FFE66D' },
-  { name: 'pie', color: '#4ECDC4' }
+  { name: 'pizza', color: '#FF6B6B', minSlices: 4, maxSlices: 8 },
+  { name: 'cake', color: '#FFE66D', minSlices: 6, maxSlices: 12 },
+  { name: 'pie', color: '#4ECDC4', minSlices: 3, maxSlices: 6 },
+  { name: 'sandwich', color: '#F4A261', minSlices: 2, maxSlices: 4 },
+  { name: 'watermelon', color: '#E76F51', minSlices: 8, maxSlices: 16 }
 ];
 
 const Game = ({ onGameOver }: GameProps) => {
@@ -16,8 +18,10 @@ const Game = ({ onGameOver }: GameProps) => {
   const [slices, setSlices] = useState<number[]>([]);
   const [score, setScore] = useState(0);
   const [currentFood] = useState(() => FOODS[Math.floor(Math.random() * FOODS.length)]);
+  const [requiredSlices] = useState(() => 
+    Math.floor(Math.random() * (currentFood.maxSlices - currentFood.minSlices + 1)) + currentFood.minSlices
+  );
   const containerRef = useRef<HTMLDivElement>(null);
-  const requiredSlices = 4;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -36,7 +40,6 @@ const Game = ({ onGameOver }: GameProps) => {
     const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX);
     const degrees = (angle * 180) / Math.PI + 180;
 
-    // Check if slice is too close to existing slices
     const tooClose = slices.some(slice => {
       const diff = Math.abs(degrees - slice);
       return diff < 20 || diff > 340;
@@ -53,16 +56,16 @@ const Game = ({ onGameOver }: GameProps) => {
 
     if (slices.length + 1 === requiredSlices) {
       toast.success("Level Complete!");
-      // Here you would typically advance to next level
       onGameOver(score + 100);
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen">
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold">Score: {score}</h2>
-        <p>Slices: {slices.length}/{requiredSlices}</p>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-orange-50 to-orange-100">
+      <div className="mb-8 text-center">
+        <h2 className="text-2xl font-bold text-orange-800">Score: {score}</h2>
+        <p className="text-orange-600">People need food! Make equal portions!</p>
+        <p className="text-sm text-orange-500">Current slices: {slices.length}</p>
       </div>
       
       <div 
@@ -90,8 +93,8 @@ const Game = ({ onGameOver }: GameProps) => {
         ))}
       </div>
       
-      <p className="mt-8 text-lg">
-        Tap to slice the {currentFood.name}!
+      <p className="mt-8 text-lg text-orange-700 font-medium">
+        Slice the {currentFood.name} carefully!
       </p>
     </div>
   );
