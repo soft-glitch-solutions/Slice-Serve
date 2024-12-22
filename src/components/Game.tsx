@@ -68,11 +68,16 @@ const Game = ({ onGameOver }: GameProps) => {
     const rect = containerRef.current.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
-    const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX);
-    const degrees = (angle * 180) / Math.PI + 180;
+    
+    // Calculate angle relative to center
+    const clickX = e.clientX - centerX;
+    const clickY = e.clientY - centerY;
+    const angle = Math.atan2(clickY, clickX);
+    const degrees = ((angle * 180) / Math.PI + 360) % 360;
 
-    const tooClose = slices.some(slice => {
-      const diff = Math.abs(degrees - slice);
+    // Check if the slice is too close to existing slices
+    const tooClose = slices.some(existingAngle => {
+      const diff = Math.abs(degrees - existingAngle);
       return diff < 20 || diff > 340;
     });
 
@@ -87,7 +92,7 @@ const Game = ({ onGameOver }: GameProps) => {
 
   const handleSubmit = () => {
     const currentPieces = calculatePieces(slices.length);
-    if (currentPieces === requiredSlices) {
+    if (currentPieces === peopleToFeed) {
       toast.success("Perfect slicing! Next level!");
       setScore(prev => prev + 100);
       // Reset for next level
@@ -95,7 +100,7 @@ const Game = ({ onGameOver }: GameProps) => {
       setTimeLeft(30);
       setCurrentFood(FOODS[Math.floor(Math.random() * FOODS.length)]);
     } else {
-      toast.error("Wrong number of pieces!");
+      toast.error(`Wrong number of pieces! You made ${currentPieces} pieces but needed ${peopleToFeed}`);
       onGameOver(score);
     }
   };
@@ -127,9 +132,10 @@ const Game = ({ onGameOver }: GameProps) => {
             key={i}
             className="slice-line"
             style={{
-              width: '100%',
+              width: '150%', // Make lines extend beyond container
               transform: `rotate(${angle}deg)`,
               top: '50%',
+              left: '-25%', // Center the extended line
             }}
           />
         ))}
