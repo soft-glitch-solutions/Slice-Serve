@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import { Button } from './ui/button';
+import Confetti from 'react-confetti';
 
 interface GameProps {
   onGameOver: (score: number) => void;
@@ -29,10 +30,10 @@ const Game = ({ onGameOver }: GameProps) => {
   const [timeLeft, setTimeLeft] = useState(30);
   const [currentFood, setCurrentFood] = useState(() => FOODS[Math.floor(Math.random() * FOODS.length)]);
   const [story] = useState(() => STORIES[Math.floor(Math.random() * STORIES.length)]);
-  const [requiredSlices] = useState(() => 
-    Math.floor(Math.random() * (currentFood.maxSlices - currentFood.minSlices + 1)) + currentFood.minSlices
-  );
   const [peopleToFeed] = useState(() => Math.floor(Math.random() * 5) + 2);
+  const [showWinOverlay, setShowWinOverlay] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startPoint, setStartPoint] = useState<{ x: number; y: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -57,27 +58,44 @@ const Game = ({ onGameOver }: GameProps) => {
   }, [timeLeft, onGameOver, score]);
 
   const calculatePieces = (slicesCount: number) => {
-    // Each slice adds one more piece than the slice number
-    // For example: 1 slice = 2 pieces, 2 slices = 3 pieces, etc.
     return slicesCount + 1;
   };
 
-  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!containerRef.current || timeLeft <= 0) return;
+  const getAngleFromPoints = (x1: number, y1: number, x2: number, y2: number, centerX: number, centerY: number) => {
+    const angle1 = Math.atan2(y1 - centerY, x1 - centerX);
+    const angle2 = Math.atan2(y2 - centerY, x2 - centerX);
+    return ((angle2 - angle1) * 180) / Math.PI;
+  };
 
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    
-    // Calculate angle relative to center
-    const clickX = e.clientX - centerX;
-    const clickY = e.clientY - centerY;
-    const angle = Math.atan2(clickY, clickX);
-    const degrees = ((angle * 180) / Math.PI + 360) % 360;
+    setIsDragging(true);
+    setStartPoint({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDragging || !startPoint || !containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const currentPoint = {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    };
+
+    const angle = getAngleFromPoints(
+      startPoint.x,
+      startPoint.y,
+      currentPoint.x,
+      currentPoint.y,
+      centerX,
+      centerY
+    );
 
     // Check if the slice is too close to existing slices
     const tooClose = slices.some(existingAngle => {
-      const diff = Math.abs(degrees - existingAngle);
+      const diff = Math.abs(angle - existingAngle);
       return diff < 20 || diff > 340;
     });
 
@@ -87,26 +105,81 @@ const Game = ({ onGameOver }: GameProps) => {
       return;
     }
 
+    setStartPoint(currentPoint);
+  };
+
+  const handleMouseUp = () => {
+    if (!isDragging || !startPoint || !containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const angle = Math.atan2(startPoint.y - centerY, startPoint.x - centerX);
+    const degrees = ((angle * 180) / Math.PI + 360) % 360;
+    
     setSlices(prev => [...prev, degrees]);
+    setIsDragging(false);
+    setStartPoint(null);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const touch = e.touches[0];
+    setIsDragging(true);
+    setStartPoint({ x: touch.clientX - rect.left, y: touch.clientY - rect.top });
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!isDragging || !startPoint || !containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const touch = e.touches[0];
+    const currentPoint = {
+      x: touch.clientX - rect.left,
+      y: touch.clientY - rect.top
+    };
+    setStartPoint(currentPoint);
+  };
+
+  const handleTouchEnd = () => {
+    handleMouseUp();
   };
 
   const handleSubmit = () => {
     const currentPieces = calculatePieces(slices.length);
     if (currentPieces === peopleToFeed) {
-      toast.success("Perfect slicing! Next level!");
+      setShowWinOverlay(true);
       setScore(prev => prev + 100);
-      // Reset for next level
-      setSlices([]);
-      setTimeLeft(30);
-      setCurrentFood(FOODS[Math.floor(Math.random() * FOODS.length)]);
     } else {
       toast.error(`Wrong number of pieces! You made ${currentPieces} pieces but needed ${peopleToFeed}`);
       onGameOver(score);
     }
   };
 
+  const handleNextLevel = () => {
+    setShowWinOverlay(false);
+    setSlices([]);
+    setTimeLeft(30);
+    setCurrentFood(FOODS[Math.floor(Math.random() * FOODS.length)]);
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-orange-50 to-orange-100">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-orange-50 to-orange-100 px-4">
+      {showWinOverlay && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Confetti />
+          <div className="bg-white p-8 rounded-xl text-center space-y-4">
+            <h2 className="text-3xl font-bold text-orange-600">Level Complete!</h2>
+            <p className="text-lg text-orange-500">Perfect slicing!</p>
+            <Button 
+              onClick={handleNextLevel}
+              className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl text-lg font-semibold"
+            >
+              Next Challenge
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="mb-8 text-center space-y-4">
         <h2 className="text-2xl font-bold text-orange-800">Score: {score}</h2>
         <p className="text-orange-600 text-lg">{story}</p>
@@ -117,8 +190,14 @@ const Game = ({ onGameOver }: GameProps) => {
       
       <div 
         ref={containerRef}
-        className="food-container relative mb-8"
-        onClick={handleClick}
+        className="food-container relative mb-8 touch-none"
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
         <div 
           className={`food-item rotate-${rotation}`}
@@ -132,10 +211,10 @@ const Game = ({ onGameOver }: GameProps) => {
             key={i}
             className="slice-line"
             style={{
-              width: '150%', // Make lines extend beyond container
+              width: '150%',
               transform: `rotate(${angle}deg)`,
               top: '50%',
-              left: '-25%', // Center the extended line
+              left: '-25%',
             }}
           />
         ))}
