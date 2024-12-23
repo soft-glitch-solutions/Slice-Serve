@@ -42,7 +42,8 @@ const Game = ({ onGameOver }: GameProps) => {
   const [rotation, setRotation] = useState('clockwise');
   const [slices, setSlices] = useState<number[]>([]);
   const [score, setScore] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(30);
+  const [timeLeft, setTimeLeft] = useState(5); // Changed from 30 to 5 seconds
+  
   const [currentFood, setCurrentFood] = useState(() => FOODS[Math.floor(Math.random() * FOODS.length)]);
   const [story] = useState(() => STORIES[Math.floor(Math.random() * STORIES.length)]);
   const [peopleToFeed] = useState(() => {
