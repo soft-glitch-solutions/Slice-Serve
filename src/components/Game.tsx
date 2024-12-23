@@ -8,14 +8,16 @@ interface GameProps {
 }
 
 const FOODS = [
-  { name: 'pizza', color: '#FF6B6B', minSlices: 4, maxSlices: 8, shape: 'circle' },
-  { name: 'cake', color: '#FFE66D', minSlices: 6, maxSlices: 12, shape: 'circle' },
-  { name: 'pie', color: '#4ECDC4', minSlices: 3, maxSlices: 6, shape: 'circle' },
+  { name: 'pizza', color: '#FF6B6B', minSlices: 2, maxSlices: 8, shape: 'circle' },
+  { name: 'cake', color: '#FFE66D', minSlices: 2, maxSlices: 12, shape: 'circle' },
+  { name: 'pie', color: '#4ECDC4', minSlices: 2, maxSlices: 6, shape: 'circle' },
   { name: 'sandwich', color: '#F4A261', minSlices: 2, maxSlices: 4, shape: 'square' },
-  { name: 'watermelon', color: '#E76F51', minSlices: 8, maxSlices: 16, shape: 'circle' }
+  { name: 'watermelon', color: '#E76F51', minSlices: 2, maxSlices: 16, shape: 'circle' }
 ];
 
 const STORIES = [
+  "The local kindergarten needs small portions for snack time!",
+  "A couple on their first date needs equal slices!",
   "The school cafeteria needs help serving lunch to the hungry students!",
   "A big family reunion is happening, and everyone's starving!",
   "The local sports team just finished their championship game!",
@@ -23,9 +25,7 @@ const STORIES = [
   "The neighborhood block party is in full swing!",
   "A group of hikers just completed their mountain trek!",
   "The coding bootcamp students need brain food for their final project!",
-  "The dance competition just ended, and the dancers are famished!",
-  "The volunteer firefighters just returned from a call!",
-  "The book club's annual gathering is bigger than ever!"
+  "The dance competition just ended, and the dancers are famished!"
 ];
 
 const getRandomEvenNumber = (min: number, max: number) => {
@@ -47,13 +47,13 @@ const Game = ({ onGameOver }: GameProps) => {
   const [currentFood, setCurrentFood] = useState(() => FOODS[Math.floor(Math.random() * FOODS.length)]);
   const [story] = useState(() => STORIES[Math.floor(Math.random() * STORIES.length)]);
   const [peopleToFeed] = useState(() => {
-    // Calculate base number based on score (higher score = more people)
-    const baseMin = 2 + Math.floor(score / 200) * 2; // Increases by 2 every 200 points
-    const baseMax = 8 + Math.floor(score / 100) * 2; // Increases by 2 every 100 points
+    // Calculate base number based on score (starting smaller, increasing with score)
+    const baseMin = 2; // Start with minimum of 2
+    const baseMax = 4 + Math.floor(score / 100) * 2; // Increases by 2 every 100 points
     
     // Ensure we don't exceed reasonable limits
     const min = Math.min(baseMin, 12);
-    const max = Math.min(baseMax, 20);
+    const max = Math.min(baseMax, 16);
     
     return getRandomEvenNumber(min, max);
   });
@@ -213,17 +213,19 @@ const Game = ({ onGameOver }: GameProps) => {
     setTimeLeft(5); // Reset to 5 seconds
     setIsPaused(false); // Resume timer for new level
     setCurrentFood(FOODS[Math.floor(Math.random() * FOODS.length)]);
-    // Update story for next level
+    
+    // Update story for next level with random selection
     const newStory = STORIES[Math.floor(Math.random() * STORIES.length)];
+    
     // Calculate new number of people to feed based on current score
-    const baseMin = 2 + Math.floor((score + 100) / 200) * 2; // Using score + 100 since we're about to increase score
-    const baseMax = 8 + Math.floor((score + 100) / 100) * 2;
+    const baseMin = 2; // Always start with minimum of 2
+    const baseMax = 4 + Math.floor((score + 100) / 100) * 2; // Increases by 2 every 100 points
     const min = Math.min(baseMin, 12);
-    const max = Math.min(baseMax, 20);
+    const max = Math.min(baseMax, 16);
     const newPeopleToFeed = getRandomEvenNumber(min, max);
     
     // Update state with new values
-    Object.assign(window, { newPeopleToFeed, newStory }); // For debugging
+    Object.assign(window, { newPeopleToFeed, newStory });
     console.log('Next level:', { newPeopleToFeed, newStory, score: score + 100 });
   };
 
