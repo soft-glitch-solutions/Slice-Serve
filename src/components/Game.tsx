@@ -16,12 +16,27 @@ const FOODS = [
 ];
 
 const STORIES = [
-  "Timmy's having a birthday party and invited 4 friends!",
-  "Sarah's hosting a tea party for her dolls!",
-  "The basketball team just finished practice!",
-  "The book club is having their monthly meeting!",
-  "The neighborhood kids are having a playdate!"
+  "The school cafeteria needs help serving lunch to the hungry students!",
+  "A big family reunion is happening, and everyone's starving!",
+  "The local sports team just finished their championship game!",
+  "It's movie night at the community center!",
+  "The neighborhood block party is in full swing!",
+  "A group of hikers just completed their mountain trek!",
+  "The coding bootcamp students need brain food for their final project!",
+  "The dance competition just ended, and the dancers are famished!",
+  "The volunteer firefighters just returned from a call!",
+  "The book club's annual gathering is bigger than ever!"
 ];
+
+const getRandomEvenNumber = (min: number, max: number) => {
+  // Ensure min and max are even
+  min = min % 2 === 0 ? min : min + 1;
+  max = max % 2 === 0 ? max : max - 1;
+  
+  // Generate random even number
+  const randomEven = Math.floor(Math.random() * ((max - min) / 2 + 1)) * 2 + min;
+  return randomEven;
+};
 
 const Game = ({ onGameOver }: GameProps) => {
   const [rotation, setRotation] = useState('clockwise');
@@ -30,7 +45,17 @@ const Game = ({ onGameOver }: GameProps) => {
   const [timeLeft, setTimeLeft] = useState(30);
   const [currentFood, setCurrentFood] = useState(() => FOODS[Math.floor(Math.random() * FOODS.length)]);
   const [story] = useState(() => STORIES[Math.floor(Math.random() * STORIES.length)]);
-  const [peopleToFeed] = useState(() => Math.floor(Math.random() * 5) + 2);
+  const [peopleToFeed] = useState(() => {
+    // Calculate base number based on score (higher score = more people)
+    const baseMin = 2 + Math.floor(score / 200) * 2; // Increases by 2 every 200 points
+    const baseMax = 8 + Math.floor(score / 100) * 2; // Increases by 2 every 100 points
+    
+    // Ensure we don't exceed reasonable limits
+    const min = Math.min(baseMin, 12);
+    const max = Math.min(baseMax, 20);
+    
+    return getRandomEvenNumber(min, max);
+  });
   const [showWinOverlay, setShowWinOverlay] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [startPoint, setStartPoint] = useState<{ x: number; y: number } | null>(null);
@@ -174,6 +199,18 @@ const Game = ({ onGameOver }: GameProps) => {
     setSlices([]);
     setTimeLeft(30);
     setCurrentFood(FOODS[Math.floor(Math.random() * FOODS.length)]);
+    // Update story for next level
+    const newStory = STORIES[Math.floor(Math.random() * STORIES.length)];
+    // Calculate new number of people to feed based on current score
+    const baseMin = 2 + Math.floor((score + 100) / 200) * 2; // Using score + 100 since we're about to increase score
+    const baseMax = 8 + Math.floor((score + 100) / 100) * 2;
+    const min = Math.min(baseMin, 12);
+    const max = Math.min(baseMax, 20);
+    const newPeopleToFeed = getRandomEvenNumber(min, max);
+    
+    // Update state with new values
+    Object.assign(window, { newPeopleToFeed, newStory }); // For debugging
+    console.log('Next level:', { newPeopleToFeed, newStory, score: score + 100 });
   };
 
   const getFoodClassName = () => {
