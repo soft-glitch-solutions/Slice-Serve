@@ -255,7 +255,7 @@ const Game = ({ onGameOver }: GameProps) => {
         <h2 className="text-2xl font-bold text-orange-800">Score: {score}</h2>
         <p className="text-orange-600 text-lg">{story}</p>
         <p className="text-orange-600">Feed {peopleToFeed} people!</p>
-        <p className="text-sm text-orange-500">Current pieces: {calculatePieces(slices.length)}</p>
+        <p className="text-sm text-orange-500">Current pieces: {calculatePieces(slices.length - 1)}</p>
         <p className="text-lg font-semibold text-orange-700">Time left: {timeLeft}s</p>
       </div>
       
