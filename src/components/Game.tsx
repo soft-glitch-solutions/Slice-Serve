@@ -147,7 +147,7 @@ const Game = ({ onGameOver }: GameProps) => {
   const handleSlice = (angle: number) => {
     const splitDirection = angle > 180 ? '10px' : '-10px';
     if (containerRef.current) {
-      const foodItem = containerRef.current.querySelector('.food-item');
+      const foodItem = containerRef.current.querySelector('.food-item') as HTMLDivElement;
       if (foodItem) {
         foodItem.style.setProperty('--split-direction', splitDirection);
         foodItem.classList.add('food-split');
