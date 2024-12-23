@@ -61,6 +61,8 @@ const Game = ({ onGameOver }: GameProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const [startPoint, setStartPoint] = useState<{ x: number; y: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isPaused, setIsPaused] = useState(false);
+  const timerRef = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
     const rotationInterval = setInterval(() => {
@@ -76,12 +78,18 @@ const Game = ({ onGameOver }: GameProps) => {
       return;
     }
 
-    const timer = setInterval(() => {
-      setTimeLeft(prev => prev - 1);
-    }, 1000);
+    if (!isPaused) {
+      timerRef.current = setInterval(() => {
+        setTimeLeft(prev => prev - 1);
+      }, 1000);
+    }
 
-    return () => clearInterval(timer);
-  }, [timeLeft, onGameOver, score]);
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, [timeLeft, onGameOver, score, isPaused]);
 
   const calculatePieces = (slicesCount: number) => {
     return slicesCount + 1;
@@ -187,6 +195,7 @@ const Game = ({ onGameOver }: GameProps) => {
   const handleSubmit = () => {
     const currentPieces = calculatePieces(slices.length);
     if (currentPieces === peopleToFeed) {
+      setIsPaused(true); // Pause timer on win
       setShowWinOverlay(true);
       setScore(prev => prev + 100);
     } else {
@@ -196,9 +205,13 @@ const Game = ({ onGameOver }: GameProps) => {
   };
 
   const handleNextLevel = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+    }
     setShowWinOverlay(false);
     setSlices([]);
-    setTimeLeft(30);
+    setTimeLeft(5); // Reset to 5 seconds
+    setIsPaused(false); // Resume timer for new level
     setCurrentFood(FOODS[Math.floor(Math.random() * FOODS.length)]);
     // Update story for next level
     const newStory = STORIES[Math.floor(Math.random() * STORIES.length)];
