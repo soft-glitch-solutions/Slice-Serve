@@ -1,7 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
- 
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -65,7 +65,7 @@
     --ring: 212.7 26.8% 83.9%;
   }
 }
- 
+
 @layer base {
   * {
     @apply border-border;
@@ -83,7 +83,7 @@
   background: rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   backdrop-filter: blur(5px);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   touch-action: none;
 }
@@ -92,8 +92,98 @@
   width: 100%;
   height: 100%;
   position: absolute;
-  transition: transform 2s linear;
+  transition: transform 0.3s ease;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.food-item.pizza {
+  background: linear-gradient(45deg, #FFD700, #FFA500);
+  border: 12px solid #8B4513;
+}
+
+.food-item.pizza::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-radial-gradient(
+    circle at center,
+    #FF4500 0px,
+    #FF4500 10px,
+    transparent 10px,
+    transparent 20px
+  );
+  opacity: 0.7;
+}
+
+.food-item.cake {
+  background: linear-gradient(180deg, #FFE4E1, #FFC0CB);
+  border: 15px solid #FFB6C1;
+}
+
+.food-item.cake::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 10px,
+    rgba(255, 182, 193, 0.3) 10px,
+    rgba(255, 182, 193, 0.3) 20px
+  );
+}
+
+.food-item.pie {
+  background: linear-gradient(45deg, #DEB887, #D2691E);
+  border: 10px solid #8B4513;
+}
+
+.food-item.pie::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-conic-gradient(
+    from 0deg,
+    rgba(139, 69, 19, 0.3) 0deg 10deg,
+    transparent 10deg 20deg
+  );
+}
+
+.food-item.sandwich {
+  background: #F5DEB3;
+  border: 15px solid #DEB887;
+  border-radius: 4px !important;
+}
+
+.food-item.sandwich::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    #8B4513 0px,
+    #8B4513 2px,
+    transparent 2px,
+    transparent 10px
+  );
+  opacity: 0.3;
+}
+
+.food-item.watermelon {
+  background: linear-gradient(45deg, #FF6B6B, #FF4040);
+  border: 15px solid #228B22;
+}
+
+.food-item.watermelon::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at center,
+    #000 2px,
+    transparent 2px
+  ) 0 0/15px 15px;
+  opacity: 0.3;
 }
 
 .rotate-clockwise {
@@ -106,19 +196,49 @@
 
 .slice-line {
   position: absolute;
-  height: 2px;
+  height: 4px;
   background: linear-gradient(90deg, 
     rgba(255, 255, 255, 0) 0%,
     rgba(255, 255, 255, 1) 50%,
     rgba(255, 255, 255, 0) 100%
   );
   box-shadow: 
-    0 0 8px rgba(255, 255, 255, 0.8),
-    0 0 12px rgba(255, 255, 255, 0.4);
-  transform-origin: 25% 50%;
+    0 0 10px rgba(255, 255, 255, 0.8),
+    0 0 20px rgba(255, 255, 255, 0.4),
+    0 0 30px rgba(255, 255, 255, 0.2);
+  transform-origin: center;
   pointer-events: none;
   z-index: 10;
-  transition: opacity 0.3s ease;
+  transition: all 0.3s ease;
+}
+
+.slice-line::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  background: inherit;
+  filter: blur(4px);
+}
+
+.food-split {
+  animation: split-open 0.5s ease forwards;
+}
+
+@keyframes split-open {
+  0% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(var(--split-direction, -10px));
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 @keyframes spin-clockwise {

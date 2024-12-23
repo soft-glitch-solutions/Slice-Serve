@@ -93,7 +93,6 @@ const Game = ({ onGameOver }: GameProps) => {
       centerY
     );
 
-    // Check if the slice is too close to existing slices
     const tooClose = slices.some(existingAngle => {
       const diff = Math.abs(angle - existingAngle);
       return diff < 20 || diff > 340;
@@ -117,6 +116,7 @@ const Game = ({ onGameOver }: GameProps) => {
     const degrees = ((angle * 180) / Math.PI + 360) % 360;
     
     setSlices(prev => [...prev, degrees]);
+    handleSlice(degrees);
     setIsDragging(false);
     setStartPoint(null);
   };
@@ -144,6 +144,20 @@ const Game = ({ onGameOver }: GameProps) => {
     handleMouseUp();
   };
 
+  const handleSlice = (angle: number) => {
+    const splitDirection = angle > 180 ? '10px' : '-10px';
+    if (containerRef.current) {
+      const foodItem = containerRef.current.querySelector('.food-item');
+      if (foodItem) {
+        foodItem.style.setProperty('--split-direction', splitDirection);
+        foodItem.classList.add('food-split');
+        setTimeout(() => {
+          foodItem.classList.remove('food-split');
+        }, 500);
+      }
+    }
+  };
+
   const handleSubmit = () => {
     const currentPieces = calculatePieces(slices.length);
     if (currentPieces === peopleToFeed) {
@@ -160,6 +174,10 @@ const Game = ({ onGameOver }: GameProps) => {
     setSlices([]);
     setTimeLeft(30);
     setCurrentFood(FOODS[Math.floor(Math.random() * FOODS.length)]);
+  };
+
+  const getFoodClassName = () => {
+    return `food-item ${currentFood.name} ${rotation === 'clockwise' ? 'rotate-clockwise' : 'rotate-counterclockwise'}`;
   };
 
   return (
@@ -200,9 +218,8 @@ const Game = ({ onGameOver }: GameProps) => {
         onTouchEnd={handleTouchEnd}
       >
         <div 
-          className={`food-item rotate-${rotation}`}
+          className={getFoodClassName()}
           style={{ 
-            backgroundColor: currentFood.color,
             borderRadius: currentFood.shape === 'circle' ? '50%' : '0%'
           }}
         />
